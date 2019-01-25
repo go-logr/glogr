@@ -1,4 +1,4 @@
-// Package glogr implements github.com/thockin/logr.Logger in terms of
+// Package glogr implements github.com/go-logr/logr.Logger in terms of
 // github.com/golang/glog.
 package glogr
 
@@ -57,11 +57,6 @@ func framesToCaller() int {
 		}
 	}
 	return 1 // something went wrong, this is safe
-}
-
-type kvPair struct {
-	key string
-	val interface{}
 }
 
 func flatten(kvList ...interface{}) string {
