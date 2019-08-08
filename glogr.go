@@ -15,25 +15,42 @@ import (
 
 // New returns a logr.Logger which is implemented by glog.
 func New() logr.Logger {
+	return NewWithOptions(Options{})
+}
+
+// NewWithOptions returns a logr.Logger which is implemented by glog.
+func NewWithOptions(opts Options) logr.Logger {
+	if opts.Depth < 0 {
+		opts.Depth = 0
+	}
+
 	return glogger{
 		level:  0,
 		prefix: "",
 		values: nil,
+		depth:  opts.Depth,
 	}
+}
+
+type Options struct {
+	// DepthOffset biases the assumed number of call frames to the "true"
+	// caller.  This is useful when the calling code calls a function which then
+	// calls glogr (e.g. a logging shim to another API).  Values less than zero
+	// will be treated as zero.
+	Depth int
 }
 
 type glogger struct {
 	level  int
 	prefix string
 	values []interface{}
+	depth  int
 }
 
 func (l glogger) clone() glogger {
-	return glogger{
-		level:  l.level,
-		prefix: l.prefix,
-		values: copySlice(l.values),
-	}
+	out := l
+	out.values = copySlice(l.values)
+	return out
 }
 
 func copySlice(in []interface{}) []interface{} {
@@ -99,7 +116,7 @@ func (l glogger) Info(msg string, kvList ...interface{}) {
 		msgStr := flatten("msg", msg)
 		fixedStr := flatten(l.values...)
 		userStr := flatten(kvList...)
-		glog.InfoDepth(framesToCaller(), l.prefix, " ", lvlStr, " ", msgStr, " ", fixedStr, " ", userStr)
+		glog.InfoDepth(framesToCaller()+l.depth, l.prefix, " ", lvlStr, " ", msgStr, " ", fixedStr, " ", userStr)
 	}
 }
 
@@ -116,7 +133,7 @@ func (l glogger) Error(err error, msg string, kvList ...interface{}) {
 	errStr := flatten("error", loggableErr)
 	fixedStr := flatten(l.values...)
 	userStr := flatten(kvList...)
-	glog.ErrorDepth(framesToCaller(), l.prefix, " ", msgStr, " ", errStr, " ", fixedStr, " ", userStr)
+	glog.ErrorDepth(framesToCaller()+l.depth, l.prefix, " ", msgStr, " ", errStr, " ", fixedStr, " ", userStr)
 }
 
 func (l glogger) V(level int) logr.InfoLogger {
