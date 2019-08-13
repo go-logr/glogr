@@ -17,6 +17,7 @@ func (e E) Error() string {
 
 func main() {
 	flag.Set("v", "3")
+	flag.Set("alsologtostderr", "true")
 	flag.Parse()
 	log := glogr.New().WithName("MyName").WithValues("user", "you")
 	log.Info("hello", "val1", 1, "val2", map[string]int{"k": 1})
