@@ -152,9 +152,9 @@ func (l glogger) Error(err error, msg string, kvList ...interface{}) {
 	glog.ErrorDepth(framesToCaller()+l.depth, l.prefix, " ", msgStr, " ", errStr, " ", fixedStr, " ", userStr)
 }
 
-func (l glogger) V(level int) logr.InfoLogger {
+func (l glogger) V(level int) logr.Logger {
 	new := l.clone()
-	new.level = level
+	new.level += level
 	return new
 }
 
@@ -177,4 +177,3 @@ func (l glogger) WithValues(kvList ...interface{}) logr.Logger {
 }
 
 var _ logr.Logger = glogger{}
-var _ logr.InfoLogger = glogger{}
