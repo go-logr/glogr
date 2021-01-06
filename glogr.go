@@ -22,6 +22,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"path/filepath"
 	"runtime"
 	"sort"
 
@@ -41,26 +42,44 @@ func NewWithOptions(opts Options) logr.Logger {
 	}
 
 	return glogger{
-		level:  0,
-		prefix: "",
-		values: nil,
-		depth:  opts.Depth,
+		level:     0,
+		prefix:    "",
+		values:    nil,
+		depth:     opts.Depth,
+		logCaller: opts.LogCaller,
 	}
 }
 
 type Options struct {
-	// DepthOffset biases the assumed number of call frames to the "true"
-	// caller.  This is useful when the calling code calls a function which then
-	// calls glogr (e.g. a logging shim to another API).  Values less than zero
-	// will be treated as zero.
+	// Depth biases the assumed number of call frames to the "true" caller.
+	// This is useful when the calling code calls a function which then calls
+	// glogr (e.g. a logging shim to another API).  Values less than zero will
+	// be treated as zero.
 	Depth int
+
+	// LogCaller tells glogr to add a "caller" key to some or all log lines.
+	// The glog implementation always logs this information in its per-line
+	// header, whether this option is set or not.
+	LogCaller MessageClass
+
+	// TODO: add an option to log the date/time
 }
 
+type MessageClass int
+
+const (
+	None MessageClass = iota
+	All
+	Info
+	Error
+)
+
 type glogger struct {
-	level  int
-	prefix string
-	values []interface{}
-	depth  int
+	level     int
+	prefix    string
+	values    []interface{}
+	depth     int
+	logCaller MessageClass
 }
 
 func (l glogger) clone() glogger {
@@ -126,13 +145,30 @@ func pretty(value interface{}) string {
 	return string(jb)
 }
 
+type callerID struct {
+	File string `json:"file"`
+	Line int    `json:"line"`
+}
+
+func (l glogger) caller() callerID {
+	_, file, line, ok := runtime.Caller(framesToCaller() + l.depth + 1) // +1 for this frame
+	if !ok {
+		return callerID{"<unknown>", 0}
+	}
+	return callerID{filepath.Base(file), line}
+}
+
 func (l glogger) Info(msg string, kvList ...interface{}) {
 	if l.Enabled() {
-		lvlStr := flatten("level", l.level)
-		msgStr := flatten("msg", msg)
+		builtin := make([]interface{}, 0, 4)
+		if l.logCaller == All || l.logCaller == Info {
+			builtin = append(builtin, "caller", l.caller())
+		}
+		builtin = append(builtin, "level", l.level, "msg", msg)
+		builtinStr := flatten(builtin...)
 		fixedStr := flatten(l.values...)
 		userStr := flatten(kvList...)
-		glog.InfoDepth(framesToCaller()+l.depth, l.prefix, " ", lvlStr, " ", msgStr, " ", fixedStr, " ", userStr)
+		glog.InfoDepth(framesToCaller()+l.depth, l.prefix, " ", builtinStr, " ", fixedStr, " ", userStr)
 	}
 }
 
@@ -141,7 +177,12 @@ func (l glogger) Enabled() bool {
 }
 
 func (l glogger) Error(err error, msg string, kvList ...interface{}) {
-	msgStr := flatten("msg", msg)
+	builtin := make([]interface{}, 0, 4)
+	if l.logCaller == All || l.logCaller == Info {
+		builtin = append(builtin, "caller", l.caller())
+	}
+	builtin = append(builtin, "msg", msg)
+	builtinStr := flatten(builtin...)
 	var loggableErr interface{}
 	if err != nil {
 		loggableErr = err.Error()
@@ -149,7 +190,7 @@ func (l glogger) Error(err error, msg string, kvList ...interface{}) {
 	errStr := flatten("error", loggableErr)
 	fixedStr := flatten(l.values...)
 	userStr := flatten(kvList...)
-	glog.ErrorDepth(framesToCaller()+l.depth, l.prefix, " ", msgStr, " ", errStr, " ", fixedStr, " ", userStr)
+	glog.ErrorDepth(framesToCaller()+l.depth, l.prefix, " ", builtinStr, " ", errStr, " ", fixedStr, " ", userStr)
 }
 
 func (l glogger) V(level int) logr.Logger {
