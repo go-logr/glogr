@@ -35,7 +35,7 @@ func main() {
 	flag.Set("v", "1")
 	flag.Set("logtostderr", "true")
 	flag.Parse()
-	log := glogr.New().WithName("MyName").WithValues("user", "you")
+	log := glogr.NewWithOptions(glogr.Options{LogCaller: glogr.All}).WithName("MyName").WithValues("user", "you")
 	log.Info("hello", "val1", 1, "val2", map[string]int{"k": 1})
 	log.V(1).Info("you should see this")
 	log.V(1).V(1).Info("you should NOT see this")
