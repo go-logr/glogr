@@ -217,4 +217,11 @@ func (l glogger) WithValues(kvList ...interface{}) logr.Logger {
 	return new
 }
 
+func (l glogger) WithCallDepth(depth int) logr.Logger {
+	new := l.clone()
+	new.depth += depth
+	return new
+}
+
 var _ logr.Logger = glogger{}
+var _ logr.CallDepthLogger = glogger{}
