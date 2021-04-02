@@ -24,7 +24,6 @@ import (
 	"fmt"
 	"path/filepath"
 	"runtime"
-	"sort"
 
 	"github.com/go-logr/logr"
 	"github.com/golang/glog"
@@ -100,35 +99,32 @@ func framesToCaller() int {
 }
 
 func flatten(kvList ...interface{}) string {
-	keys := make([]string, 0, len(kvList))
-	vals := make(map[string]interface{}, len(kvList))
+	if len(kvList)%2 != 0 {
+		kvList = append(kvList, "<no-value>")
+	}
+	// Empirically bytes.Buffer is faster than strings.Builder for this.
+	buf := bytes.NewBuffer(make([]byte, 0, 1024))
 	for i := 0; i < len(kvList); i += 2 {
 		k, ok := kvList[i].(string)
 		if !ok {
-			panic(fmt.Sprintf("key is not a string: %s", pretty(kvList[i])))
+			k = fmt.Sprintf("<non-string-key-%d>", i/2)
 		}
-		var v interface{}
-		if i+1 < len(kvList) {
-			v = kvList[i+1]
-		}
-		keys = append(keys, k)
-		vals[k] = v
-	}
-	sort.Strings(keys)
-	buf := bytes.Buffer{}
-	for i, k := range keys {
-		v := vals[k]
+		v := kvList[i+1]
+
 		if i > 0 {
 			buf.WriteRune(' ')
 		}
-		buf.WriteString(pretty(k))
-		buf.WriteString("=")
+		buf.WriteRune('"')
+		buf.WriteString(k)
+		buf.WriteRune('"')
+		buf.WriteRune('=')
 		buf.WriteString(pretty(v))
 	}
 	return buf.String()
 }
 
 func pretty(value interface{}) string {
+	// TODO: This is not fast. Most of the overhead goes here.
 	jb, _ := json.Marshal(value)
 	return string(jb)
 }
