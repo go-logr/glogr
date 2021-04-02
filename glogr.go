@@ -144,7 +144,7 @@ func (l glogger) caller() callerID {
 
 func (l glogger) Info(msg string, kvList ...interface{}) {
 	if l.Enabled() {
-		builtin := make([]interface{}, 0, 4)
+		builtin := make([]interface{}, 0, 8)
 		if l.logCaller == All || l.logCaller == Info {
 			builtin = append(builtin, "caller", l.caller())
 		}
