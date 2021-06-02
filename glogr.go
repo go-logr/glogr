@@ -331,30 +331,24 @@ func (l glogger) Error(err error, msg string, kvList ...interface{}) {
 // WithName returns a new logr.Logger with the specified name appended.  glogr
 // uses '/' characters to separate name elements.  Callers should not pass '/'
 // in the provided name string, but this library does not actually enforce that.
-func (l *glogger) WithName(name string) logr.LogSink {
-	l2 := &glogger{}
-	*l2 = *l
-	if len(l2.prefix) > 0 {
-		l.prefix = l2.prefix + "/"
+func (l glogger) WithName(name string) logr.LogSink {
+	if len(l.prefix) > 0 {
+		l.prefix = l.prefix + "/"
 	}
-	l2.prefix += name
-	return l2
+	l.prefix += name
+	return &l
 }
 
-func (l *glogger) WithValues(kvList ...interface{}) logr.LogSink {
-	l2 := &glogger{}
-	*l2 = *l
+func (l glogger) WithValues(kvList ...interface{}) logr.LogSink {
 	// Three slice args forces a copy.
 	n := len(l.values)
-	l2.values = append(l2.values[:n:n], kvList...)
-	return l2
+	l.values = append(l.values[:n:n], kvList...)
+	return &l
 
 }
 
-func (l *glogger) WithCallDepth(depth int) logr.LogSink {
-	l2 := &glogger{}
-	*l2 = *l
-	l2.depth += depth
-	return l2
+func (l glogger) WithCallDepth(depth int) logr.LogSink {
+	l.depth += depth
+	return &l
 
 }
