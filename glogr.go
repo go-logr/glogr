@@ -302,7 +302,7 @@ func (l glogger) Error(err error, msg string, kvList ...interface{}) {
 // in the provided name string, but this library does not actually enforce that.
 func (l glogger) WithName(name string) logr.LogSink {
 	if len(l.prefix) > 0 {
-		l.prefix = l.prefix + "/"
+		l.prefix += "/"
 	}
 	l.prefix += name
 	return &l

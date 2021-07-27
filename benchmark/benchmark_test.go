@@ -34,6 +34,7 @@ func init() {
 
 //go:noinline
 func doInfoOneArg(b *testing.B, log logr.Logger) {
+	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
 		log.Info("this is", "a", "string")
 	}
@@ -41,6 +42,7 @@ func doInfoOneArg(b *testing.B, log logr.Logger) {
 
 //go:noinline
 func doInfoSeveralArgs(b *testing.B, log logr.Logger) {
+	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
 		log.Info("multi",
 			"bool", true, "string", "str", "int", 42,
@@ -50,6 +52,7 @@ func doInfoSeveralArgs(b *testing.B, log logr.Logger) {
 
 //go:noinline
 func doV0Info(b *testing.B, log logr.Logger) {
+	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
 		log.V(0).Info("multi",
 			"bool", true, "string", "str", "int", 42,
@@ -59,6 +62,7 @@ func doV0Info(b *testing.B, log logr.Logger) {
 
 //go:noinline
 func doV9Info(b *testing.B, log logr.Logger) {
+	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
 		log.V(9).Info("multi",
 			"bool", true, "string", "str", "int", 42,
@@ -68,6 +72,7 @@ func doV9Info(b *testing.B, log logr.Logger) {
 
 //go:noinline
 func doError(b *testing.B, log logr.Logger) {
+	b.ReportAllocs()
 	err := fmt.Errorf("error message")
 	for i := 0; i < b.N; i++ {
 		log.Error(err, "multi",
@@ -78,6 +83,7 @@ func doError(b *testing.B, log logr.Logger) {
 
 //go:noinline
 func doWithValues(b *testing.B, log logr.Logger) {
+	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
 		l := log.WithValues("k1", "v1", "k2", "v2")
 		_ = l
@@ -86,6 +92,7 @@ func doWithValues(b *testing.B, log logr.Logger) {
 
 //go:noinline
 func doWithName(b *testing.B, log logr.Logger) {
+	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
 		l := log.WithName("name")
 		_ = l
