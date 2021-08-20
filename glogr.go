@@ -281,6 +281,9 @@ func (l glogger) Info(level int, msg string, kvList ...interface{}) {
 	args = append(args, l.values...)
 	args = append(args, kvList...)
 	argsStr := flatten(args...)
+	if l.prefix != "" {
+		l.prefix += " "
+	}
 	glog.InfoDepth(l.depth+1, l.prefix, argsStr)
 }
 
@@ -298,6 +301,9 @@ func (l glogger) Error(err error, msg string, kvList ...interface{}) {
 	args = append(args, l.values...)
 	args = append(args, kvList...)
 	argsStr := flatten(args...)
+	if l.prefix != "" {
+		l.prefix += " "
+	}
 	glog.ErrorDepth(l.depth+1, l.prefix, argsStr)
 }
 
