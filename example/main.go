@@ -44,7 +44,7 @@ func main() {
 	_ = flag.Set("v", "1")
 	_ = flag.Set("logtostderr", "true")
 	flag.Parse()
-	log := glogr.NewWithOptions(glogr.Options{LogCaller: glogr.All}).WithName("MyName")
+	log := glogr.NewWithOptions(glogr.Options{}).WithName("MyName")
 	example(log.WithValues("module", "example"))
 }
 
