@@ -27,8 +27,8 @@ import (
 )
 
 func init() {
-	flag.Set("v", "1")
-	flag.Set("logtostderr", "true")
+	_ = flag.Set("v", "1")
+	_ = flag.Set("logtostderr", "true")
 	os.Stderr, _ = os.Open("/dev/null")
 }
 
