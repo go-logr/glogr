@@ -44,7 +44,7 @@ func NewWithOptions(opts Options) logr.Logger {
 	}
 
 	// For skipping glogger.Info and glogger.Error.
-	gl.Formatter.AddCallDepth(opts.Depth)
+	gl.Formatter.AddCallDepth(opts.Depth + 1)
 
 	return logr.New(gl)
 }
@@ -95,7 +95,7 @@ func (l glogger) Info(level int, msg string, kvList ...interface{}) {
 	if prefix != "" {
 		args = prefix + ": " + args
 	}
-	glog.InfoDepth(l.Formatter.GetDepth()+1, args)
+	glog.InfoDepth(l.Formatter.GetDepth(), args)
 }
 
 func (l glogger) Error(err error, msg string, kvList ...interface{}) {
@@ -103,7 +103,7 @@ func (l glogger) Error(err error, msg string, kvList ...interface{}) {
 	if prefix != "" {
 		args = prefix + ": " + args
 	}
-	glog.ErrorDepth(l.Formatter.GetDepth()+1, args)
+	glog.ErrorDepth(l.Formatter.GetDepth(), args)
 }
 
 func (l glogger) WithName(name string) logr.LogSink {
